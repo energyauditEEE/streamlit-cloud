@@ -151,7 +151,7 @@ def show():
         st.write(f"Installation & Labor: ₹{INSTALLATION_LABOR_COST:,.2f}")
         st.write(f"#### Total Estimated Cost: ₹{total_cost:,.2f}")
 
-        # Subsidy Selection and Final Cost Calculation
+        # Subsidy Selection
         subsidy_percent = st.slider("Select Government Subsidy (%):", min_value=0, max_value=40, value=20)
         subsidy_amount = (subsidy_percent / 100) * total_cost
         final_cost = total_cost - subsidy_amount
@@ -163,5 +163,5 @@ def show():
     else:
         st.info("Select the panel type and battery options (if applicable) and click 'Calculate Cost Breakdown' to see the cost estimate.")
 
-if __name__ == "__main__":
+if _name_ == "_main_":
     show()
