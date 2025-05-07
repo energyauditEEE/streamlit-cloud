@@ -63,6 +63,9 @@ def show():
                 num_panels = int(total_area / panel_area_per_unit)
                 st.write(f"Number of {panel_type} panels connected: {num_panels}")
 
+                # User Input for Efficiency
+                panel_efficiency = st.slider("Select Solar Panel Efficiency (as a percentage):", min_value=5, max_value=25, value=18) / 100
+
                 # User input for parallel connections
                 num_parallel = st.slider("Enter the number of panels in parallel connection:", min_value=1, max_value=num_panels, value=1)
 
@@ -80,9 +83,6 @@ def show():
                     total_current = CURRENT_PER_PANEL * num_parallel
                     st.write(f"Total Voltage (V): {total_voltage}")
                     st.write(f"Total Current (A): {total_current}")
-
-                    # User Input for Efficiency
-                    panel_efficiency = st.slider("Select Solar Panel Efficiency (as a percentage):", min_value=5, max_value=25, value=18) / 100
 
                     # Predict Solar Irradiance for 2025–2030
                     future_dates = pd.date_range(start='2025-01-01', end='2030-12-31', freq='D')
