@@ -163,5 +163,5 @@ def show():
     else:
         st.info("Select the panel type and battery options (if applicable) and click 'Calculate Cost Breakdown' to see the cost estimate.")
 
-if __name__ == "_main__":
+if __name__ == "__main__":
     show()
