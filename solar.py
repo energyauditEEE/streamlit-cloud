@@ -122,44 +122,52 @@ def show():
     st.subheader("Solar Installation Cost Calculator")
     panel_type_calc = st.radio("Select Panel Type for Cost Calculation:", options=["Residential", "Commercial"])
     include_battery = st.checkbox("Include Battery Storage?")
-    battery_capacity_kwh = (
-        st.number_input("Enter Battery Capacity (kWh):", min_value=1.0, value=5.0)
-        if include_battery
-        else 0
-    )
+    battery_capacity_kwh = 0.0
+    if include_battery:
+        battery_capacity_kwh = st.number_input("Enter Battery Capacity (kWh):", min_value=1.0, value=5.0)
 
-    # Cost Calculation
-    panel_cost = PANEL_COST_PER_WATT[panel_type_calc] * calculated_system_size * 1000 if calculated_system_size > 0 else 0
-    inverter_cost = INVERTER_COST
-    battery_cost = battery_capacity_kwh * BATTERY_COST_PER_KWH
-    total_cost = (
-        panel_cost
-        + inverter_cost
-        + battery_cost
-        + STRUCTURE_COST
-        + WIRING_ACCESSORIES_COST
-        + INSTALLATION_LABOR_COST
-    )
+    calculate_cost_button = st.button("Calculate Cost Breakdown")
 
-    # Cost Breakdown Display
-    st.write("### Cost Breakdown:")
-    st.write(f"Solar Panels: ₹{panel_cost:,.2f}")
-    st.write(f"Inverter: ₹{inverter_cost:,.2f}")
-    st.write(f"Battery (if included): ₹{battery_cost:,.2f}")
-    st.write(f"Mounting Structure: ₹{STRUCTURE_COST:,.2f}")
-    st.write(f"Wiring & Accessories: ₹{WIRING_ACCESSORIES_COST:,.2f}")
-    st.write(f"Installation & Labor: ₹{INSTALLATION_LABOR_COST:,.2f}")
-    st.write(f"#### Total Estimated Cost: ₹{total_cost:,.2f}")
+    if calculate_cost_button:
+        panel_cost = PANEL_COST_PER_WATT[panel_type_calc] * calculated_system_size * 1000 if calculated_system_size > 0 else 0
+        inverter_cost = INVERTER_COST
+        battery_cost = battery_capacity_kwh * BATTERY_COST_PER_KWH
+        total_cost = (
+            panel_cost
+            + inverter_cost
+            + battery_cost
+            + STRUCTURE_COST
+            + WIRING_ACCESSORIES_COST
+            + INSTALLATION_LABOR_COST
+        )
 
-    # Subsidy Calculation (Optional)
-    subsidy_percent = st.slider("Select Government Subsidy (%):", min_value=0, max_value=40, value=20)
-    subsidy_amount = (subsidy_percent / 100) * total_cost
-    final_cost = total_cost - subsidy_amount
+        # Cost Breakdown Display
+        st.write("### Cost Breakdown:")
+        st.write(f"Solar Panels: ₹{panel_cost:,.2f}")
+        st.write(f"Inverter: ₹{inverter_cost:,.2f}")
+        st.write(f"Battery (if included): ₹{battery_cost:,.2f}")
+        st.write(f"Mounting Structure: ₹{STRUCTURE_COST:,.2f}")
+        st.write(f"Wiring & Accessories: ₹{WIRING_ACCESSORIES_COST:,.2f}")
+        st.write(f"Installation & Labor: ₹{INSTALLATION_LABOR_COST:,.2f}")
+        st.write(f"#### Total Estimated Cost: ₹{total_cost:,.2f}")
 
-    # Display Final Cost
-    st.write("### Final Cost After Subsidy:")
-    st.write(f"Government Subsidy: ₹{subsidy_amount:,.2f}")
-    st.write(f"Final Cost: ₹{final_cost:,.2f}")
+        # Subsidy Selection
+        subsidy_percent = st.slider("Select Government Subsidy (%):", min_value=0, max_value=40, value=20)
 
-if __name__ == "__main__":
+        calculate_final_cost_button = st.button("Calculate Final Cost After Subsidy")
+
+        if calculate_final_cost_button:
+            subsidy_amount = (subsidy_percent / 100) * total_cost
+            final_cost = total_cost - subsidy_amount
+
+            # Display Final Cost
+            st.write("### Final Cost After Subsidy:")
+            st.write(f"Government Subsidy: ₹{subsidy_amount:,.2f}")
+            st.write(f"Final Cost: ₹{final_cost:,.2f}")
+        else:
+            st.info("Select the government subsidy percentage and click 'Calculate Final Cost After Subsidy'.")
+    else:
+        st.info("Enter battery capacity (if applicable) and click 'Calculate Cost Breakdown' to see the initial cost estimate.")
+
+if __name__== "__main__":
     show()
