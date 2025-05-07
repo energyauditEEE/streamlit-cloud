@@ -104,42 +104,42 @@ def show():
     wind_generation_per_month = 0.5 * 1.225 * (average_wind_speed ** 3) * (wind_turbine_kw/1000) * 24 * 30
     st.write(f"Estimated monthly wind generation: {wind_generation_per_month:.2f} kW")
 
-if st.button("calculate savings"):
+    if st.button("calculate savings"):
     # Calculate Savings
-    savings = calculate_savings(units_used, solar_generation_per_month, wind_generation_per_month, category)
+      savings = calculate_savings(units_used, solar_generation_per_month, wind_generation_per_month, category)
 
     # Display Results
-    st.subheader("Results")
-    st.write(f"Total Monthly Consumption: {units_used} kW")
-    cost_without_solar_wind = calculate_cost(category, units_used)
-    st.write(f"Cost without Solar and Wind: ₹{cost_without_solar_wind:.2f}")
-    cost_with_solar_wind = calculate_cost(category, max(0, units_used - solar_generation_per_month - wind_generation_per_month))
-    st.write(f"Cost with Solar and Wind: ₹{cost_with_solar_wind:.2f}")
-    st.write(f"Savings: ₹{savings:.2f}")
+      st.subheader("Results")
+      st.write(f"Total Monthly Consumption: {units_used} kW")
+      cost_without_solar_wind = calculate_cost(category, units_used)
+      st.write(f"Cost without Solar and Wind: ₹{cost_without_solar_wind:.2f}")
+      cost_with_solar_wind = calculate_cost(category, max(0, units_used - solar_generation_per_month - wind_generation_per_month))
+      st.write(f"Cost with Solar and Wind: ₹{cost_with_solar_wind:.2f}")
+      st.write(f"Savings: ₹{savings:.2f}")
 
     # Visualization
-    st.subheader("Cost and Savings Visualization")
+      st.subheader("Cost and Savings Visualization")
 
     # Create a DataFrame for plotting
-    plot_data = pd.DataFrame({
-        'Cost Type': ['Without Solar/Wind', 'With Solar/Wind'],
-        'Cost': [cost_without_solar_wind, cost_with_solar_wind]
-    })
+      plot_data = pd.DataFrame({
+          'Cost Type': ['Without Solar/Wind', 'With Solar/Wind'],
+          'Cost': [cost_without_solar_wind, cost_with_solar_wind]
+      })
 
     # Create a bar chart using Streamlit's altair
-    chart = alt.Chart(plot_data).mark_bar().encode(
-        x='Cost Type',
-        y='Cost',
-        color='Cost Type',
-        tooltip=['Cost Type', 'Cost']  # Add tooltip for interactivity
-    ).properties(
-        title='Comparison of Electricity Costs'
-    )
-    st.altair_chart(chart, use_container_width=True)  # Make chart responsive
+      chart = alt.Chart(plot_data).mark_bar().encode(
+          x='Cost Type',
+          y='Cost',
+          color='Cost Type',
+          tooltip=['Cost Type', 'Cost']  # Add tooltip for interactivity
+      ).properties(
+          title='Comparison of Electricity Costs'
+      )
+      st.altair_chart(chart, use_container_width=True)  # Make chart responsive
 
     # Display savings as a single number
-    st.subheader("Total Monthly Savings")
-    st.markdown(f"<h1 style='text-align: center; color: green;'>₹{savings:.2f}</h1>", unsafe_allow_html=True)
+      st.subheader("Total Monthly Savings")
+      st.markdown(f"<h1 style='text-align: center; color: green;'>₹{savings:.2f}</h1>", unsafe_allow_html=True)
 
-if __name__ == "__main__":
-    show()
+  if __name__ == "__main__":
+      show()
