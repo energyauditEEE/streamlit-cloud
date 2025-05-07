@@ -10,7 +10,7 @@ def show():
     st.subheader("Wind Energy Prediction")
 
     # File Upload Section
-    uploaded_file = st.file_uploader("Upload your wind speed data Excel file with DATE, max wind speed(mps))", type=["xlsx"])
+    uploaded_file = st.file_uploader("Upload your wind speed data Excel file with DATE, max wind speed(mps)", type=["xlsx"])
 
     if uploaded_file:
         try:
