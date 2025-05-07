@@ -10,8 +10,8 @@ def main():
     st.title("Energy and Anomaly Management Dashboard")
 
     # Create tabs for each of your sections
-    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["Anomaly Detection",
-                                                 "Comparison",
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["Data Prediction",
+                                                 "Forecasting",
                                                  "Savings Plan",
                                                  "Solar Dashboard",
                                                  "Wind Dashboard",
