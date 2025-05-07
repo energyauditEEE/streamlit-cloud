@@ -34,10 +34,7 @@ def show():
         if energy_consumption > 0 and sunlight_hours > 0 and efficiency_factor > 0:
             calculated_system_size = energy_consumption / (sunlight_hours * efficiency_factor)
             st.write(f"Recommended System Size: {calculated_system_size:.2f} kW")
-        else:
-            st.warning("Please ensure all input values are positive.")
-    else:
-        st.info("Enter the energy consumption, sunlight hours, and efficiency factor, then click 'Calculate Recommended System Size'.")
+        
     st.subheader("Solar Energy Prediction")
     # File Upload Section for Dashboard
     uploaded_file = st.file_uploader("Upload your solar irradiance dataset (Excel file):", type=["xlsx"])
