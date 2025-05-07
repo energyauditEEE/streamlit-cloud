@@ -37,7 +37,7 @@ def show():
         
     st.subheader("Solar Energy Prediction")
     # File Upload Section for Dashboard
-    uploaded_file = st.file_uploader("Upload your solar irradiance dataset (Excel file):  \nExcel header format:DATE,solar irradiance", type=["xlsx"])
+    uploaded_file = st.file_uploader("Upload your solar irradiance dataset (Excel file):  \nExcel header format: DATE, solar irradiance", type=["xlsx"])
 
     if uploaded_file:
         try:
