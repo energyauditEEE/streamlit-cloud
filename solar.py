@@ -26,6 +26,7 @@ def show():
     sunlight_hours = st.slider("Enter peak sunlight hours per day:", min_value=3, max_value=8, value=5)
     efficiency_factor = st.slider("Enter system efficiency factor (%):", min_value=70, max_value=100, value=90) / 100
 
+    if st.button("calculate recommended system size"):
     calculated_system_size = 0.0
     # Perform Calculation ONLY if values are valid
     if energy_consumption > 0 and sunlight_hours > 0 and efficiency_factor > 0:
