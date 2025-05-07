@@ -104,7 +104,7 @@ def show():
     wind_generation_per_month = 0.5 * 1.225 * (average_wind_speed ** 3) * (wind_turbine_kw/1000) * 24 * 30
     st.write(f"Estimated monthly wind generation: {wind_generation_per_month:.2f} kW")
 
-    if st.button("calculate savings"):
+if st.button("calculate savings"):
     # Calculate Savings
     savings = calculate_savings(units_used, solar_generation_per_month, wind_generation_per_month, category)
 
