@@ -30,12 +30,14 @@ def show():
     calculate_button_pressed = st.button("Calculate Recommended System Size")
 
     if calculate_button_pressed:
-        # Perform Calculation ONLY if values are valid
+        # Calculation and st.write happen ONLY if the button was just pressed
         if energy_consumption > 0 and sunlight_hours > 0 and efficiency_factor > 0:
             calculated_system_size = energy_consumption / (sunlight_hours * efficiency_factor)
             st.write(f"Recommended System Size: {calculated_system_size:.2f} kW")
         else:
-            st.warning("Please enter valid positive values for energy consumption, sunlight hours, and efficiency factor.")
+            st.warning("Please ensure all input values are positive.")
+    else:
+        st.info("Enter the energy consumption, sunlight hours, and efficiency factor, then click 'Calculate Recommended System Size'.")
     st.subheader("Solar Energy Prediction")
     # File Upload Section for Dashboard
     uploaded_file = st.file_uploader("Upload your solar irradiance dataset (Excel file):", type=["xlsx"])
