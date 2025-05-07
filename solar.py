@@ -40,33 +40,37 @@ def show():
     uploaded_file = st.file_uploader("Upload your solar irradiance data Excel file with DATE, solar irradiance", type=["xlsx"])
 
     if uploaded_file:
-        process_data_button_pressed = st.button("Proceed with Prediction")
-        if process_data_button_pressed:
-            try:
-                # Load the dataset
-                data = pd.read_excel(uploaded_file, sheet_name='Sheet1')
-                data.columns = data.columns.str.strip().str.lower()  # Normalize column names to lowercase
-                data['date'] = pd.to_datetime(data['date'], errors='coerce')  # Convert Excel date to datetime
+        try:
+            # Load the dataset
+            data = pd.read_excel(uploaded_file, sheet_name='Sheet1')
+            data.columns = data.columns.str.strip().str.lower()  # Normalize column names to lowercase
+            data['date'] = pd.to_datetime(data['date'], errors='coerce')  # Convert Excel date to datetime
 
-                if 'solar irradiance' not in data.columns:
-                    st.error("Error: 'solar irradiance' column not found in the uploaded file.")
+            if 'solar irradiance' not in data.columns:
+                st.error("Error: 'solar irradiance' column not found in the uploaded file.")
+            else:
+                # User Inputs for Panel Type and Total Area
+                panel_type = st.radio("Select Panel Type:", options=["Residential (60-cell)", "Commercial (72-cell)"])
+                total_area = st.number_input("Enter Total Panel Area (in m²):", min_value=1.0, value=10.0)
+
+                # Set panel area based on selection
+                if panel_type == "Residential (60-cell)":
+                    panel_area_per_unit = RESIDENTIAL_PANEL_AREA
                 else:
-                    # User Inputs for Panel Type and Total Area
-                    panel_type = st.radio("Select Panel Type:", options=["Residential (60-cell)", "Commercial (72-cell)"])
-                    total_area = st.number_input("Enter Total Panel Area (in m²):", min_value=1.0, value=10.0)
+                    panel_area_per_unit = COMMERCIAL_PANEL_AREA
 
-                    # Set panel area based on selection
-                    if panel_type == "Residential (60-cell)":
-                        panel_area_per_unit = RESIDENTIAL_PANEL_AREA
-                    else:
-                        panel_area_per_unit = COMMERCIAL_PANEL_AREA
+                # Calculate number of panels
+                num_panels = int(total_area / panel_area_per_unit)
+                st.write(f"Number of {panel_type} panels connected: {num_panels}")
 
-                    # Calculate number of panels
-                    num_panels = int(total_area / panel_area_per_unit)
-                    st.write(f"Number of {panel_type} panels connected: {num_panels}")
+                # User input for parallel connections
+                num_parallel = st.slider("Enter the number of panels in parallel connection:", min_value=1, max_value=num_panels, value=1)
 
-                    # Calculate parallel and series connections
-                    num_parallel = st.slider("Enter the number of panels in parallel connection:", min_value=1, max_value=num_panels, value=1)
+                calculate_electrical_button = st.button("Calculate Electrical Characteristics and Predict Energy")
+
+                if calculate_electrical_button:
+
+                    # Calculate series connections
                     num_series = num_panels // num_parallel
                     st.write(f"Parallel Connections: {num_parallel}")
                     st.write(f"Series Connections: {num_series}")
@@ -110,8 +114,8 @@ def show():
                     else:
                         st.warning("Warning: 'solar irradiance' data is empty in the uploaded file. Cannot generate prediction.")
 
-            except Exception as e:
-                st.error(f"An error occurred while processing the uploaded file: {e}")
+        except Exception as e:
+            st.error(f"An error occurred while processing the uploaded file: {e}")
 
     st.markdown("---")
 
@@ -157,5 +161,5 @@ def show():
     st.write(f"Government Subsidy: ₹{subsidy_amount:,.2f}")
     st.write(f"Final Cost: ₹{final_cost:,.2f}")
 
-if __name__ == "__main__":
+if _name_ == "_main_":
     show()
