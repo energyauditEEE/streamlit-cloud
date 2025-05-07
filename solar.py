@@ -161,5 +161,5 @@ def show():
     st.write(f"Government Subsidy: ₹{subsidy_amount:,.2f}")
     st.write(f"Final Cost: ₹{final_cost:,.2f}")
 
-if _name_ == "_main_":
+if __name__ == "__main__":
     show()
