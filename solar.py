@@ -27,16 +27,18 @@ def show():
     efficiency_factor = st.slider("Enter system efficiency factor (%):", min_value=70, max_value=100, value=90) / 100
     calculated_system_size = 0.0
     
-    if st.button("calculate recommended system size"):{
+    calculate_button_pressed = st.button("Calculate Recommended System Size")
+
+    if calculate_button_pressed:
         # Perform Calculation ONLY if values are valid
         if energy_consumption > 0 and sunlight_hours > 0 and efficiency_factor > 0:
             calculated_system_size = energy_consumption / (sunlight_hours * efficiency_factor)
-    
-        st.write(f"Recommended System Size: {calculated_system_size:.2f} kW")}
-    
-        st.subheader("Solar Energy Prediction")
-        # File Upload Section for Dashboard
-        uploaded_file = st.file_uploader("Upload your solar irradiance dataset (Excel file):", type=["xlsx"])
+            st.write(f"Recommended System Size: {calculated_system_size:.2f} kW")
+        else:
+            st.warning("Please enter valid positive values for energy consumption, sunlight hours, and efficiency factor.")
+    st.subheader("Solar Energy Prediction")
+    # File Upload Section for Dashboard
+    uploaded_file = st.file_uploader("Upload your solar irradiance dataset (Excel file):", type=["xlsx"])
 
     if uploaded_file:
         try:
