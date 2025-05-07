@@ -126,9 +126,10 @@ def show():
     if include_battery:
         battery_capacity_kwh = st.number_input("Enter Battery Capacity (kWh):", min_value=1.0, value=5.0)
 
-    calculate_cost_button = st.button("Calculate Cost Breakdown")
+    calculate_cost_button_pressed = st.button("Calculate Cost Breakdown")
+    cost_breakdown_displayed = False
 
-    if calculate_cost_button:
+    if calculate_cost_button_pressed:
         panel_cost = PANEL_COST_PER_WATT[panel_type_calc] * calculated_system_size * 1000 if calculated_system_size > 0 else 0
         inverter_cost = INVERTER_COST
         battery_cost = battery_capacity_kwh * BATTERY_COST_PER_KWH
@@ -150,13 +151,14 @@ def show():
         st.write(f"Wiring & Accessories: ₹{WIRING_ACCESSORIES_COST:,.2f}")
         st.write(f"Installation & Labor: ₹{INSTALLATION_LABOR_COST:,.2f}")
         st.write(f"#### Total Estimated Cost: ₹{total_cost:,.2f}")
+        cost_breakdown_displayed = True
 
+    if cost_breakdown_displayed:
         # Subsidy Selection
         subsidy_percent = st.slider("Select Government Subsidy (%):", min_value=0, max_value=40, value=20)
+        calculate_final_cost_button_pressed = st.button("Calculate Final Cost After Subsidy")
 
-        calculate_final_cost_button = st.button("Calculate Final Cost After Subsidy")
-
-        if calculate_final_cost_button:
+        if calculate_final_cost_button_pressed:
             subsidy_amount = (subsidy_percent / 100) * total_cost
             final_cost = total_cost - subsidy_amount
 
@@ -164,10 +166,8 @@ def show():
             st.write("### Final Cost After Subsidy:")
             st.write(f"Government Subsidy: ₹{subsidy_amount:,.2f}")
             st.write(f"Final Cost: ₹{final_cost:,.2f}")
-        else:
-            st.info("Select the government subsidy percentage and click 'Calculate Final Cost After Subsidy'.")
     else:
-        st.info("Enter battery capacity (if applicable) and click 'Calculate Cost Breakdown' to see the initial cost estimate.")
+        st.info("Select the panel type and battery options (if applicable) and click 'Calculate Cost Breakdown' to proceed.")
 
-if __name__== "__main__":
+if _name_ == "_main_":
     show()
