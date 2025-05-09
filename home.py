@@ -7,7 +7,7 @@ from wind import show as show_wind
 from costcalculator import show as show_costcalculator
 
 def main():
-    st.title("Energy and Anomaly Management Dashboard")
+    st.title("An ML Based Energy Auditor Dashboard")
 
     # Create tabs for each of your sections
     tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["Data Prediction",
