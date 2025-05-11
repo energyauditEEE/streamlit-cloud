@@ -1,5 +1,5 @@
 import streamlit as st
-def main():
+def home():
     st.title("An ML : Energy Auditor Dashboard")
 page = st.sidebar.selectbox("Choose Module", ["Data Prediction",
                                                  "Forecasting",
@@ -8,21 +8,21 @@ page = st.sidebar.selectbox("Choose Module", ["Data Prediction",
                                                  "Wind Dashboard",
                                                  "Cost Calculator"])
 if page == "Data Prediction":
-    from anomaly import main
-    main()
+    from anomaly import home
+    home()
 if page == "Forecasting":
-    from compare import main
-    main()
+    from compare import home
+    home()
 if page == "Savings Plan":
-    from savingsplan import main
-    main()
+    from savingsplan import home
+    home()
 if page == "Solar Dashboard":
-    from solar import main
-    main()
+    from solar import home
+    home()
 if page == "Wind Dashboard":
-    from wind import main
-    main()
+    from wind import home
+    home()
 if page == "Cost Calculator":
-    from costcalculator import main
-    main()
+    from costcalculator import home
+    home()
     
