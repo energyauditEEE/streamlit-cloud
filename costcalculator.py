@@ -137,7 +137,7 @@ def show():
         )
         st.altair_chart(chart, use_container_width=True)  # Make chart responsive
         #TN grid emission factors (0.82 kg CO₂/kWh)
-        co2_saved = (solar_generation + wind_generation) * 0.82
+        co2_saved = ( solar_generation_per_month + wind_generation_per_month) * 0.82
         st.write(f"Monthly CO₂ Reduction: {co2_saved:.2f} kg")
         # Display savings as a single number
         st.subheader("Total Monthly Savings")
