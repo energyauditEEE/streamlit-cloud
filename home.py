@@ -5,30 +5,35 @@ from savingsplan import show as show_savingsplan
 from solar import show as show_solar
 from wind import show as show_wind
 from costcalculator import show as show_costcalculator
-def home():
+
+def main():
     st.title("An ML : Energy Auditor Dashboard")
-page = st.sidebar.selectbox("Choose Module", ["Data Prediction",
+
+    # Create tabs for each of your sections
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["Data Prediction",
                                                  "Forecasting",
                                                  "Savings Plan",
                                                  "Solar Dashboard",
                                                  "Wind Dashboard",
                                                  "Cost Calculator"])
-if page == "Data Prediction":
-    from anomaly import home
-    home()
-if page == "Forecasting":
-    from compare import home
-    home()
-if page == "Savings Plan":
-    from savingsplan import home
-    home()
-if page == "Solar Dashboard":
-    from solar import home
-    home()
-if page == "Wind Dashboard":
-    from wind import home
-    home()
-if page == "Cost Calculator":
-    from costcalculator import home
-    home()
-    
+    # Assign the functions from each file to the corresponding tab
+    with tab1:
+        show_anomaly()
+
+    with tab2:
+        show_compare()
+
+    with tab3:
+        show_savingsplan()
+
+    with tab4:
+        show_solar()
+
+    with tab5:
+        show_wind()
+
+    with tab6:
+        show_costcalculator()
+
+if __name__ == "__main__":
+    main()
