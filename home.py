@@ -1,3 +1,4 @@
+import streamlit as st
 def main():
     st.title("An ML : Energy Auditor Dashboard")
 page = st.sidebar.selectbox("Choose Module", ["Data Prediction",
