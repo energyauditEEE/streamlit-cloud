@@ -1,4 +1,10 @@
 import streamlit as st
+from anomaly import show as show_anomaly
+from compare import show as show_compare
+from savingsplan import show as show_savingsplan
+from solar import show as show_solar
+from wind import show as show_wind
+from costcalculator import show as show_costcalculator
 def home():
     st.title("An ML : Energy Auditor Dashboard")
 page = st.sidebar.selectbox("Choose Module", ["Data Prediction",
