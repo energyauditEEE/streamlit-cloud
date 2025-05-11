@@ -1,54 +1,39 @@
-# main.py
 import streamlit as st
-import savingsplan
-import anomaly
-import compare
-import costcalculator
-import wind
-import solar
+from anomaly import show as show_anomaly
+from compare import show as show_compare
+from savingsplan import show as show_savingsplan
+from solar import show as show_solar
+from wind import show as show_wind
+from costcalculator import show as show_costcalculator
 
-# Configure page settings
-st.set_page_config(
-    page_title="An ML : Energy Auditor Dashboard",
-    page_icon="⚡",
-    layout="wide"
-)
+def main():
+    st.title("An ML : Energy Auditor Dashboard")
 
-# Sidebar navigation
-st.sidebar.title("Energy Auditing Suite")
-st.sidebar.header("Navigation")
-app_mode = st.sidebar.radio("Select Module", [
-    "🏠 Home",
-    "🔍Data Prediction",
-    "📈 Forecasting",
-    "📜 Energy Plans",
-    "💸 Cost Calculator",
-    "🌬️ Wind Energy",
-    "☀️ Solar Energy"
-])
+    # Create tabs for each of your sections
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["Data Prediction",
+                                                 "Forecasting",
+                                                 "Savings Plan",
+                                                 "Solar Dashboard",
+                                                 "Wind Dashboard",
+                                                 "Cost Calculator"])
+    # Assign the functions from each file to the corresponding tab
+    with tab1:
+        show_anomaly()
 
-# Home Page
-if app_mode == "🏠 Home":
-    st.title("Welcome to the Energy Analytics Suite")
- 
-# Module Routing
+    with tab2:
+        show_compare()
 
-    
-elif app_mode == "🔍 Data Prediction ":
-    anomaly.main()
-    
-elif app_mode == "📈 Forecasting":
-    compare.main()
+    with tab3:
+        show_savingsplan()
 
-elif app_mode == "📜 Energy Plans":
-    savingsplan.main()
+    with tab4:
+        show_solar()
 
-elif app_mode == "💸 Cost Calculator":
-    costcalculator.main()
-    
-elif app_mode == "🌬️ Wind Energy":
-    wind.main()
-    
-elif app_mode == "☀️ Solar Energy":
-    solar.main()
+    with tab5:
+        show_wind()
 
+    with tab6:
+        show_costcalculator()
+
+if __name__ == "__main__":
+    main()
