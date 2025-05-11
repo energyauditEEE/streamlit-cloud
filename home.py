@@ -1,9 +1,9 @@
 # main.py
 import streamlit as st
-import SAVINPLAN
-import ANOMLY
-import COMPARE
-import cost
+import savingsplan
+import anomaly
+import compare
+import costcalculator
 import wind
 import solar
 
@@ -35,16 +35,16 @@ if app_mode == "🏠 Home":
 
     
 elif app_mode == "🔍 Data Prediction ":
-    ANOMLY.main()
+    anomaly.main()
     
 elif app_mode == "📈 Forecasting":
-    COMPARE.main()
+    compare.main()
 
 elif app_mode == "📜 Energy Plans":
-    SAVINPLAN.main()
+    savingsplan.main()
 
 elif app_mode == "💸 Cost Calculator":
-    cost.main()
+    costcalculator.main()
     
 elif app_mode == "🌬️ Wind Energy":
     wind.main()
