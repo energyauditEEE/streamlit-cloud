@@ -136,7 +136,9 @@ def show():
             title='Comparison of Electricity Costs'
         )
         st.altair_chart(chart, use_container_width=True)  # Make chart responsive
-
+        #TN grid emission factors (0.82 kg CO₂/kWh)
+        co2_saved = (solar_generation + wind_generation) * 0.82
+        st.write(f"Monthly CO₂ Reduction: {co2_saved:.2f} kg")
         # Display savings as a single number
         st.subheader("Total Monthly Savings")
         st.markdown(f"<h1 style='text-align: center; color: green;'>₹{savings:.2f}</h1>", unsafe_allow_html=True)
