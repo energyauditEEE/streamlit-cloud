@@ -120,9 +120,9 @@ def show():
     data = load_data(uploaded_file)
 
     if data is not None:
-        filled_data = predict_missing_power(data.copy()) # Use a copy to avoid modifying the original DataFrame
-        heatmap_data_pivot = prepare_heatmap_data(filled_data.copy())
-        anomalies = detect_anomalies(filled_data.copy())
+        filled_data = predict_missing_power(data) # Use a copy to avoid modifying the original DataFrame
+        heatmap_data_pivot = prepare_heatmap_data(filled_data)
+        anomalies = detect_anomalies(filled_data)
 
         # Heatmap
     st.subheader("Heatmap of Missing Power Consumption Dates")
