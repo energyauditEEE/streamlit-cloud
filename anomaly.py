@@ -89,7 +89,7 @@ def detect_anomalies(data):
         st.error(f"Anomaly detection failed: {str(e)}")
         return pd.DataFrame()
 
-def main():
+def show():
     st.title("Power Consumption Analysis with Anomaly Detection & Heatmap")
     
     uploaded_file = st.file_uploader(
