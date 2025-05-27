@@ -4,7 +4,8 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.ensemble import RandomForestRegressor, IsolationForest
-
+def show():
+    st.header("Data Prediction")
 
 @st.cache_data
 def load_data(uploaded_file):
