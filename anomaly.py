@@ -131,4 +131,4 @@ def show():
         else:  # Ensure it's aligned correctly
             st.info("Please upload an Excel file to start the analysis.")
 if __name__ == "__main__":
- show()
+ main()
