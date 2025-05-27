@@ -1,3 +1,4 @@
+# anomaly.py
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -7,133 +8,152 @@ from sklearn.ensemble import RandomForestRegressor, IsolationForest
 
 @st.cache_data
 def load_data(uploaded_file):
-    """Loads and preprocesses the data."""
-    if uploaded_file is not None:
-        try:
-            data = pd.read_excel(uploaded_file)
-            if 'DATE' not in data.columns:
-                st.error("Error: 'DATE' column not found in the uploaded file.")
-                return None
-            required_columns = [
-                'Temperature (F)', 'Dew Point (F)', 'Max Wind Speed (mps)',
-                'Avg Wind Speed (mps)', 'Atm Pressure (hPa)', 'Humidity(g/m^3)',
-                'Power_Consumption(MU)'
-            ]
-            missing_cols = [col for col in required_columns if col not in data.columns]
-            if missing_cols:
-                st.error(f"Missing required columns: {', '.join(missing_cols)}")
-                return None
-            data['DATE'] = pd.to_datetime(data['DATE'])
-            data = data.dropna(subset=required_columns[:-1])  # Allow NaNs in Power_Consumption
-            return data
-        except Exception as e:
-            st.error(f"Error loading file: {str(e)}")
+    """Loads and preprocesses data with enhanced error handling"""
+    if uploaded_file is None:
+        return None
+        
+    try:
+        data = pd.read_excel(uploaded_file)
+        required_cols = [
+            'DATE', 'Temperature (F)', 'Dew Point (F)',
+            'Max Wind Speed (mps)', 'Avg Wind Speed (mps)',
+            'Atm Pressure (hPa)', 'Humidity(g/m^3)', 'Power_Consumption(MU)'
+        ]
+        
+        # Validate columns
+        missing = [col for col in required_cols if col not in data.columns]
+        if missing:
+            st.error(f"Missing required columns: {', '.join(missing)}")
             return None
-    return None
+            
+        # Convert and clean data
+        data['DATE'] = pd.to_datetime(data['DATE'], errors='coerce')
+        data = data.dropna(subset=required_cols[1:-1])  # Allow NaNs in Power_Consumption
+        
+        return data
+        
+    except Exception as e:
+        st.error(f"Data loading failed: {str(e)}")
+        return None
 
 @st.cache_data
-def predict_missing_power(data):
-    """Predicts missing power consumption values."""
-    if data is None or data.empty:
-        return pd.DataFrame()
-
-    if 'Power_Consumption(MU)' not in data.columns:
-        st.error("Power consumption column missing")
+def predict_missing(data):
+    """Predicts missing power values with safety checks"""
+    if data is None or 'Power_Consumption(MU)' not in data.columns:
         return data
-
-    known_data = data[data['Power_Consumption(MU)'].notna()]
-    missing_data = data[data['Power_Consumption(MU)'].isna()]
+        
+    known = data[data['Power_Consumption(MU)'].notna()]
+    missing = data[data['Power_Consumption(MU)'].isna()]
     
-    if missing_data.empty:
+    if len(known) < 10:  # Minimum samples check
+        st.warning("Insufficient data for reliable prediction")
         return data
-
-    features = ['Temperature (F)', 'Dew Point (F)', 'Max Wind Speed (mps)',
-                'Avg Wind Speed (mps)', 'Atm Pressure (hPa)', 'Humidity(g/m^3)']
-    
+        
     try:
-        model = RandomForestRegressor(n_estimators=200, random_state=42)
-        model.fit(known_data[features], known_data['Power_Consumption(MU)'])
-        missing_data['Power_Consumption(MU)'] = model.predict(missing_data[features])
+        model = RandomForestRegressor(n_estimators=100, random_state=42)
+        features = ['Temperature (F)', 'Dew Point (F)', 
+                   'Max Wind Speed (mps)', 'Avg Wind Speed (mps)',
+                   'Atm Pressure (hPa)', 'Humidity(g/m^3)']
+                   
+        model.fit(known[features], known['Power_Consumption(MU)'])
+        missing['Power_Consumption(MU)'] = model.predict(missing[features])
+        
+        return pd.concat([known, missing]).sort_values('DATE')
+        
     except Exception as e:
         st.error(f"Prediction failed: {str(e)}")
         return data
 
-    return pd.concat([known_data, missing_data]).sort_values('DATE')
-
-@st.cache_data
-def prepare_heatmap_data(data):
-    """Prepares data for the heatmap."""
-    if data is None or data.empty:
-        return pd.DataFrame()
-
-    try:
-        data['Month'] = data['DATE'].dt.month
-        data['Day'] = data['DATE'].dt.day
-        heatmap_data = data.groupby(['Day', 'Month'])['Power_Consumption(MU)'].mean().reset_index()
-        return heatmap_data.pivot(index='Day', columns='Month', values='Power_Consumption(MU)')
-    except Exception as e:
-        st.error(f"Heatmap generation failed: {str(e)}")
-        return pd.DataFrame()
-
 @st.cache_data
 def detect_anomalies(data):
-    """Detects anomalies in the power consumption data."""
-    if data is None or data.empty or 'Power_Consumption(MU)' not in data.columns:
+    """Robust anomaly detection with fallbacks"""
+    if data is None or 'Power_Consumption(MU)' not in data.columns:
         return pd.DataFrame()
-
+        
     try:
-        iso_forest = IsolationForest(contamination=0.05, random_state=42)
-        data['anomaly'] = iso_forest.fit_predict(data[['Power_Consumption(MU)']])
+        model = IsolationForest(contamination=0.05, random_state=42)
+        data['anomaly'] = model.fit_predict(data[['Power_Consumption(MU)']])
         return data[data['anomaly'] == -1]
+        
     except Exception as e:
         st.error(f"Anomaly detection failed: {str(e)}")
         return pd.DataFrame()
 
 def show():
-    st.title("Power Consumption Analysis with Anomaly Detection & Heatmap")
+    """Main display function for Streamlit tab"""
+    st.header("🔍 Power Consumption Diagnosis")
     
+    # File upload section
     uploaded_file = st.file_uploader(
-        "Upload your historical data Excel file",
+        "Upload Energy Data (Excel)",
         type=["xlsx"],
-        help="Required columns: DATE, Temperature (F), Dew Point (F), Wind Speeds, Pressure, Humidity, Power_Consumption(MU)"
+        help="Requires DATE, weather parameters, and Power_Consumption(MU) columns"
     )
-
-    data = load_data(uploaded_file)
     
-    if data is not None:
-        filled_data = predict_missing_power(data)
+    # Data processing pipeline
+    raw_data = load_data(uploaded_file)
+    processed_data = predict_missing(raw_data)
+    anomalies = detect_anomalies(processed_data)
+    
+    if processed_data is not None:
+        # Visualization Section
+        col1, col2 = st.columns([2, 1])
         
-        # Heatmap Section
-        st.header("Consumption Patterns")
-        heatmap_data = prepare_heatmap_data(filled_data)
-        if not heatmap_data.empty:
+        with col1:
+            st.subheader("Temporal Analysis")
             fig, ax = plt.subplots(figsize=(12, 6))
-            sns.heatmap(heatmap_data, cmap='YlGnBu', ax=ax)
-            st.pyplot(fig)
-        
-        # Anomaly Detection Section
-        st.header("Anomaly Detection")
-        anomalies = detect_anomalies(filled_data)
-        if not anomalies.empty:
-            fig, ax = plt.subplots(figsize=(12, 6))
-            ax.plot(filled_data['DATE'], filled_data['Power_Consumption(MU)'], label='Normal')
-            ax.scatter(anomalies['DATE'], anomalies['Power_Consumption(MU)'], color='red', label='Anomaly')
+            
+            # Main time series plot
+            ax.plot(processed_data['DATE'], 
+                   processed_data['Power_Consumption(MU)'], 
+                   label='Consumption', zorder=1)
+                   
+            # Anomaly highlights
+            if not anomalies.empty:
+                ax.scatter(anomalies['DATE'], 
+                          anomalies['Power_Consumption(MU)'],
+                          color='red', label='Anomalies', zorder=2)
+                          
             ax.set_xlabel("Date")
             ax.set_ylabel("Power Consumption (MU)")
             ax.legend()
             st.pyplot(fig)
-        else:
-            st.info("No anomalies detected")
-        
-        # Data Preview and Download
-        st.header("Processed Data")
-        st.dataframe(filled_data.head(10))
+            
+        with col2:
+            st.subheader("Data Summary")
+            st.metric("Total Records", len(processed_data))
+            st.metric("Anomalies Detected", len(anomalies))
+            
+            # Quick stats table
+            stats = processed_data['Power_Consumption(MU)'].describe()
+            st.dataframe(
+                stats.rename('Statistics').to_frame().T,
+                use_container_width=True
+            )
+            
+        # Heatmap section
+        st.subheader("Monthly Consumption Patterns")
+        try:
+            heatmap_data = processed_data.set_index('DATE').resample('M').mean()
+            fig, ax = plt.subplots(figsize=(14, 4))
+            sns.heatmap(
+                heatmap_data[['Power_Consumption(MU)']].T,
+                annot=True, fmt=".1f",
+                cmap="YlGnBu",
+                cbar_kws={'label': 'MU'}
+            )
+            st.pyplot(fig)
+        except Exception as e:
+            st.error(f"Heatmap generation failed: {str(e)}")
+            
+        # Data download
         st.download_button(
-            "Download Processed Data",
-            filled_data.to_csv(index=False),
-            "processed_power_data.csv",
-            "text/csv"
+            label="Download Processed Data",
+            data=processed_data.to_csv(index=False),
+            file_name="processed_energy_data.csv",
+            mime="text/csv"
         )
 
+# For local testing (remove in deployment)
 if __name__ == "__main__":
-    main()
+    show()
