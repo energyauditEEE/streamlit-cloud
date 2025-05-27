@@ -7,6 +7,7 @@ from sklearn.ensemble import RandomForestRegressor, IsolationForest
 
 def show():
     st.header("Data Prediction")
+
 @st.cache_data
 def load_data(uploaded_file):
     """Loads and preprocesses the data."""
@@ -45,7 +46,6 @@ def predict_missing_power(data):
 @st.cache_data
 def prepare_heatmap_data(data):
     """Prepares data for the heatmap."""
-
     if data is None or data.empty:
         return pd.DataFrame()
 
@@ -70,7 +70,10 @@ def detect_anomalies(data):
 # Streamlit App
 st.title("Power Consumption Analysis with Anomaly Detection & Heatmap")
 
-uploaded_file = st.file_uploader("Upload your historical data Excel file with Date, Temperature (F), Dew Point (F), Max Wind Speed (mps),Avg Wind Speed (mps), Atm Pressure (hPa), Humidity(g/m^3) ", type=["xlsx"])
+uploaded_file = st.file_uploader(
+    "Upload your historical data Excel file with Date, Temperature (F), Dew Point (F), Max Wind Speed (mps), Avg Wind Speed (mps), Atm Pressure (hPa), Humidity(g/m^3)",
+    type=["xlsx"]
+)
 
 data = load_data(uploaded_file)
 
@@ -91,30 +94,32 @@ if data is not None:
     # Anomaly Detection
     st.subheader("Time Series of Power Consumption with Anomaly Detection")
     fig2, ax2 = plt.subplots(figsize=(12, 5))
-    if filled_data is not None:
-      ax2.plot(filled_data['DATE'], filled_data['Power_Consumption(MU)'],
-               label='Power Consumption', color='blue', linewidth=1.5)
+    ax2.plot(filled_data['DATE'], filled_data['Power_Consumption(MU)'],
+             label='Power Consumption', color='blue', linewidth=1.5)
 
-      if not anomalies.empty:
-          ax2.scatter(anomalies['DATE'], anomalies['Power_Consumption(MU)'],
-                      color='red', label='Anomaly', s=60, marker='o')
+    if not anomalies.empty:
+        ax2.scatter(anomalies['DATE'], anomalies['Power_Consumption(MU)'],
+                    color='red', label='Anomaly', s=60, marker='o')
 
-      ax2.set_xlabel('Date')
-      ax2.set_ylabel('Power Consumption (MU)')
-      ax2.legend()
-      ax2.grid(True)
-      st.pyplot(fig2)
+    ax2.set_xlabel('Date')
+    ax2.set_ylabel('Power Consumption (MU)')
+    ax2.legend()
+    ax2.grid(True)
+    st.pyplot(fig2)
 
     # Display Data and Download
     st.subheader("📁 View Predicted Power Consumption Data")
-    if filled_data is not None:
-        st.dataframe(filled_data.head(10))
-        st.download_button(
-            label="Download Predicted Data",
-            data=filled_data.to_csv(index=False),
-            file_name="Predicted_Power_Consumption.csv",
-            mime="text/csv"
-        )
- st.warning("Please upload an Excel file to proceed with forecasting.")
+    st.dataframe(filled_data.head(10))
+    st.download_button(
+        label="Download Predicted Data",
+        data=filled_data.to_csv(index=False),
+        file_name="Predicted_Power_Consumption.csv",
+        mime="text/csv"
+    )
+
 else:
-    st.info("Please upload an Excel file to start the analysis.")
+    st.warning("Please upload an Excel file to proceed with forecasting.")
+
+# Ensure Home Page Loads Properly
+if __name__ == '__main__':
+    show()
