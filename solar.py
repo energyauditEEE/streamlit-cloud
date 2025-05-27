@@ -103,12 +103,12 @@ def show():
                         st.dataframe(future_data[['date', 'solar energy (kWh/day)']].head()) # Display first few rows
 
                         # Visualization
-                        st.write("Solar Energy Prediction Plot:")
+                        st.write("Solar Irradiance Prediction Plot:")
                         fig, ax = plt.subplots(figsize=(10, 6))
                         ax.plot(future_data['date'], future_data['solar energy (kWh/day)'], label="Predicted Energy")
                         ax.set_xlabel("Date")
-                        ax.set_ylabel("Solar Energy (kWh/day)")
-                        ax.set_title("Predicted Solar Energy (2025–2030)")
+                        ax.set_ylabel("Solar Irradiance (kWh/day)")
+                        ax.set_title("Predicted Solar Irradiance for the year (2025–2030) for TamilNadu")
                         ax.legend()
                         st.pyplot(fig)
                     else:
