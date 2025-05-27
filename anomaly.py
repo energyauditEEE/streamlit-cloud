@@ -75,57 +75,57 @@ def detect_anomalies(data):
     anomalies = data[data['anomaly'] == -1]
     return anomalies
 
+def show()
+    # Streamlit App
+    st.title("Power Consumption Analysis with Anomaly Detection & Missing Data Heatmap")
+    
+    uploaded_file = st.file_uploader(
+        "Upload your historical data Excel file with Date, Temperature (F), Dew Point (F), Max Wind Speed (mps), Avg Wind Speed (mps), Atm Pressure (hPa), Humidity(g/m^3)",
+        type=["xlsx"])
+    
+    data = load_data(uploaded_file)
 
-# Streamlit App
-st.title("Power Consumption Analysis with Anomaly Detection & Missing Data Heatmap")
-
-uploaded_file = st.file_uploader(
-    "Upload your historical data Excel file with Date, Temperature (F), Dew Point (F), Max Wind Speed (mps), Avg Wind Speed (mps), Atm Pressure (hPa), Humidity(g/m^3)",
-    type=["xlsx"])
-
-data = load_data(uploaded_file)
-
-if data is not None:
-    filled_data = predict_missing_power(data)
-    missing_heatmap_data_pivot = prepare_heatmap_missing_data(filled_data)
-    anomalies = detect_anomalies(filled_data)
-
-    # Heatmap for Missing Data
-    st.subheader("Heatmap of Missing Power Consumption Dates (MU)")
-    if not missing_heatmap_data_pivot.empty:
-        fig1, ax1 = plt.subplots(figsize=(10, 6))
-        sns.heatmap(missing_heatmap_data_pivot, cmap='YlGnBu', annot=True, fmt=".2f", ax=ax1)
-        ax1.set_title("Missing Power Consumption Heatmap (MU)")
-        st.pyplot(fig1)
-    else:
-        st.warning("No missing data available to generate heatmap.")
-
-    # Anomaly Detection
-    st.subheader(" Power Consumption with Anomaly Detection to check the fit-in of missing datas")
-    fig2, ax2 = plt.subplots(figsize=(12, 5))
-    if filled_data is not None:
-        ax2.plot(filled_data['DATE'], filled_data['Power_Consumption(MU)'],
-                 label='Power Consumption', color='blue', linewidth=1.5)
-
-        if not anomalies.empty:
-            ax2.scatter(anomalies['DATE'], anomalies['Power_Consumption(MU)'],
-                        color='red', label='Anomaly', s=60, marker='o')
-
-        ax2.set_xlabel('Date')
-        ax2.set_ylabel("Power Consumption (MU)")
-        ax2.legend()
-        ax2.grid(True)
-        st.pyplot(fig2)
-
-
-        # Display Data and Download
-        st.subheader("📁 View Predicted Power Consumption Data")
-        st.dataframe(filled_data.head(10))
-        st.download_button(
-            label="Download Predicted Data",
-            data=filled_data.to_csv(index=False),
-            file_name="Predicted_Power_Consumption.csv",
-            mime="text/csv"
-        )
-    else:  # Ensure it's aligned correctly
-        st.info("Please upload an Excel file to start the analysis.")
+    if data is not None:
+        filled_data = predict_missing_power(data)
+        missing_heatmap_data_pivot = prepare_heatmap_missing_data(filled_data)
+        anomalies = detect_anomalies(filled_data)
+    
+        # Heatmap for Missing Data
+        st.subheader("Heatmap of Missing Power Consumption Dates (MU)")
+        if not missing_heatmap_data_pivot.empty:
+            fig1, ax1 = plt.subplots(figsize=(10, 6))
+            sns.heatmap(missing_heatmap_data_pivot, cmap='YlGnBu', annot=True, fmt=".2f", ax=ax1)
+            ax1.set_title("Missing Power Consumption Heatmap (MU)")
+            st.pyplot(fig1)
+        else:
+            st.warning("No missing data available to generate heatmap.")
+    
+        # Anomaly Detection
+        st.subheader(" Power Consumption with Anomaly Detection to check the fit-in of missing datas")
+        fig2, ax2 = plt.subplots(figsize=(12, 5))
+        if filled_data is not None:
+            ax2.plot(filled_data['DATE'], filled_data['Power_Consumption(MU)'],
+                     label='Power Consumption', color='blue', linewidth=1.5)
+    
+            if not anomalies.empty:
+                ax2.scatter(anomalies['DATE'], anomalies['Power_Consumption(MU)'],
+                            color='red', label='Anomaly', s=60, marker='o')
+    
+            ax2.set_xlabel('Date')
+            ax2.set_ylabel("Power Consumption (MU)")
+            ax2.legend()
+            ax2.grid(True)
+            st.pyplot(fig2)
+    
+    
+            # Display Data and Download
+            st.subheader("📁 View Predicted Power Consumption Data")
+            st.dataframe(filled_data.head(10))
+            st.download_button(
+                label="Download Predicted Data",
+                data=filled_data.to_csv(index=False),
+                file_name="Predicted_Power_Consumption.csv",
+                mime="text/csv"
+            )
+        else:  # Ensure it's aligned correctly
+            st.info("Please upload an Excel file to start the analysis.")
