@@ -99,13 +99,13 @@ def show():
                         )
 
                         # Display Predictions
-                        st.write("Predicted Solar Energy (kWh/day) for 2025–2030:")
-                        st.dataframe(future_data[['date', 'solar energy (kWh/day)']].head()) # Display first few rows
+                        st.write("Predicted Solar Irradiance (kg-hr/m2/day) for 2025–2030:")
+                        st.dataframe(future_data[['date', 'Irradiance (kg-hr/m2/day)']].head()) # Display first few rows
 
                         # Visualization
                         st.write("Solar Irradiance Prediction Plot:")
                         fig, ax = plt.subplots(figsize=(10, 6))
-                        ax.plot(future_data['date'], future_data['solar energy (kWh/day)'], label="Predicted Energy")
+                        ax.plot(future_data['date'], future_data['solar energy (kg-hr/m2/day)'], label="Predicted Energy")
                         ax.set_xlabel("Date")
                         ax.set_ylabel("Solar Irradiance (kWh/day)")
                         ax.set_title("Predicted Solar Irradiance for the year (2025–2030) for TamilNadu")
