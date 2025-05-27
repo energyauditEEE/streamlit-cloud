@@ -1,225 +1,133 @@
+import streamlit as st
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 import seaborn as sns
-import streamlit as st
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.neural_network import MLPRegressor
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.svm import SVR
-from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
-from datetime import timedelta
-from io import BytesIO
+import matplotlib.pyplot as plt
+from sklearn.ensemble import RandomForestRegressor, IsolationForest
 
-def show():
-    st.header("Power Consumption Forecasting Comparison")
 
-    # File upload
-    uploaded_file = st.file_uploader("Upload Excel File for Forecasting", type=['xlsx'])
-
+@st.cache_data
+def load_data(uploaded_file):
+    """Loads and preprocesses the data."""
     if uploaded_file is not None:
-        # Read the file
-        try:
-            df = pd.read_excel(uploaded_file)
-        except Exception as e:
-            st.error(f"Error reading file: {e}")
-            st.stop()
+        data = pd.read_excel(uploaded_file)
+        data['DATE'] = pd.to_datetime(data['DATE'])
+        data = data.dropna(subset=[
+            'Temperature (F)', 'Dew Point (F)', 'Max Wind Speed (mps)',
+            'Avg Wind Speed (mps)', 'Atm Pressure (hPa)', 'Humidity(g/m^3)'
+        ])
+        return data
+    return None
 
-        # Ensure 'DATE' column exists
-        if 'DATE' not in df.columns:
-            st.error("Error: The 'DATE' column is missing in the uploaded file.")
-            st.stop()
 
-        df['DATE'] = pd.to_datetime(df['DATE'])  # convert 'DATE' column to datetime
+@st.cache_data
+def predict_missing_power(data):
+    """Predicts missing power consumption values."""
+    if data is None:
+        return pd.DataFrame()
 
-        # Ensure 'Power_Consumption(MU)' column exists
-        if 'Power_Consumption(MU)' not in df.columns:
-            st.error("Error: The 'Power_Consumption(MU)' column is missing in the uploaded file.")
-            st.stop()
+    data['was_missing'] = data['Power_Consumption(MU)'].isna()  # Track originally missing values
+    known_data = data[data['Power_Consumption(MU)'].notna()]
+    missing_data = data[data['Power_Consumption(MU)'].isna()]
+    features = ['Temperature (F)', 'Dew Point (F)', 'Max Wind Speed (mps)',
+                'Avg Wind Speed (mps)', 'Atm Pressure (hPa)', 'Humidity(g/m^3)']
 
-        model_choice = st.sidebar.selectbox("Choose Model for Individual Forecast", ['ANN', 'RF', 'SVM'])
+    X_known = known_data[features]
+    y_known = known_data['Power_Consumption(MU)']
+    X_missing = missing_data[features]
 
-        if st.sidebar.button(f"Run Forecast with {model_choice}"):
-            try:
-                forecast_df, mse, r2, mae, predicted_df = forecast_model(df.copy(), model_choice)
+    if not X_missing.empty:
+        model = RandomForestRegressor(n_estimators=200, random_state=42)
+        model.fit(X_known, y_known)
+        missing_data['Power_Consumption(MU)'] = model.predict(X_missing)
 
-                st.subheader(f"Forecasting Results - {model_choice}")
-                st.markdown(f"MSE: {mse:.2f}, R²: {r2:.4f}, MAE: {mae:.2f}")
+    filled_data = pd.concat([known_data, missing_data]).sort_values(by='DATE')
+    return filled_data
 
-                st.line_chart(data=forecast_df.set_index('Date')['Power_Consumption(MU)'])
 
-                with st.expander("📋 Predicted vs Actual Data"):
-                    st.dataframe(predicted_df.head(50))
+@st.cache_data
+def prepare_heatmap_missing_data(data):
+    """Prepares heatmap data for only originally missing dates."""
+    if data is None or data.empty:
+        return pd.DataFrame()
 
-                with st.expander("📈 Forecasted Future Data"):
-                    st.dataframe(forecast_df.head(50))
+    missing_data = data[data['was_missing']]  # Use the flag instead of checking NaN
+    missing_data['Month'] = missing_data['DATE'].dt.month
+    missing_data['Day'] = missing_data['DATE'].dt.day
 
-                # Error distribution plot
-                st.subheader("📊 Error Distribution")
-                predicted_df['Error'] = predicted_df['Actual'] - predicted_df['Predicted']
-                fig_error, ax_error = plt.subplots()
-                sns.histplot(predicted_df['Error'], bins=30, kde=True, ax=ax_error)
-                ax_error.set_title(f"Error Distribution for {model_choice}")
-                st.pyplot(fig_error)
+    if missing_data.empty:
+        return pd.DataFrame()
 
-                # Daily changes plot
-                st.subheader("📉 Daily Power Consumption Changes")
-                df_sorted = df.sort_values('DATE').copy()
-                df_sorted['Daily Change'] = df_sorted['Power_Consumption(MU)'].diff()
-                fig_daily, ax_daily = plt.subplots()
-                ax_daily.plot(df_sorted['DATE'], df_sorted['Daily Change'])
-                ax_daily.set_title("Daily Change in Power Consumption")
-                ax_daily.set_xlabel("Date")
-                ax_daily.set_ylabel("Change (MU)")
-                st.pyplot(fig_daily)
+    heatmap_data = missing_data.groupby(['Day', 'Month'])['Power_Consumption(MU)'].mean().reset_index()
+    heatmap_data_pivot = heatmap_data.pivot(index='Day', columns='Month', values='Power_Consumption(MU)')
 
-            except ValueError as ve:
-                st.error(f"Error in forecasting with {model_choice}: {ve}")
-            except Exception as e:
-                st.error(f"An unexpected error occurred during forecasting with {model_choice}: {e}")
+    return heatmap_data_pivot
 
-        st.subheader("📉 Joint Model Comparison (5-Year Forecast)")
-        try:
-            ann_df, ann_mse, ann_r2, ann_mae, _ = forecast_model(df.copy(), 'ANN')
-            rf_df, rf_mse, rf_r2, rf_mae, _ = forecast_model(df.copy(), 'RF')
-            svm_df, svm_mse, svm_r2, svm_mae, _ = forecast_model(df.copy(), 'SVM')
 
-            joint_df = pd.concat([ann_df.assign(Model='ANN'), rf_df.assign(Model='RF'), svm_df.assign(Model='SVM')])
-            fig_joint, ax_joint = plt.subplots(figsize=(14, 7))
-            for label, data in joint_df.groupby('Model'):
-                ax_joint.plot(data['Date'], data['Power_Consumption(MU)'], label=label)
-            ax_joint.legend()
-            ax_joint.set_title("Comparison of Forecasts Over 5 Years")
-            ax_joint.set_xlabel("Date")
-            ax_joint.set_ylabel("Power Consumption (MU)")
-            ax_joint.grid(True)
-            st.pyplot(fig_joint)
+@st.cache_data
+def detect_anomalies(data):
+    """Detects anomalies in the power consumption data."""
+    if data is None or data.empty:
+        return pd.DataFrame()
 
-            # Model comparison metrics table
-            st.subheader("📊 Model Comparison Metrics")
-            metrics_df = pd.DataFrame({
-                'Model': ['ANN', 'RF', 'SVM'],
-                'MSE': [ann_mse, rf_mse, svm_mse],
-                'R²': [ann_r2, rf_r2, svm_r2],
-                'MAE': [ann_mae, rf_mae, svm_mae]
-            })
-            st.dataframe(metrics_df)
+    iso_forest = IsolationForest(contamination=0.05, random_state=42)
+    data['anomaly'] = iso_forest.fit_predict(data[['Power_Consumption(MU)']])
+    anomalies = data[data['anomaly'] == -1]
+    return anomalies
 
-            # Provide Excel file download links
-            st.subheader("📥 Download Forecast Data")
-            for model, forecast_data in zip(['ANN', 'RF', 'SVM'], [ann_df, rf_df, svm_df]):
-                excel_buffer_forecast = BytesIO()
-                forecast_data.to_excel(excel_buffer_forecast, index=False)
-                excel_buffer_forecast.seek(0)
 
-                st.download_button(
-                    label=f"Download {model} 5-Year Forecast",
-                    data=excel_buffer_forecast,
-                    file_name=f"{model}_5yr_forecast.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                )
-        except Exception as e:
-            st.error(f"An error occurred during joint model comparison: {e}")
+# Streamlit App
+st.title("Power Consumption Analysis with Anomaly Detection & Missing Data Heatmap")
 
+uploaded_file = st.file_uploader(
+    "Upload your historical data Excel file with Date, Temperature (F), Dew Point (F), Max Wind Speed (mps), Avg Wind Speed (mps), Atm Pressure (hPa), Humidity(g/m^3)",
+    type=["xlsx"])
+
+data = load_data(uploaded_file)
+
+if data is not None:
+    filled_data = predict_missing_power(data)
+    missing_heatmap_data_pivot = prepare_heatmap_missing_data(filled_data)
+    anomalies = detect_anomalies(filled_data)
+
+    # Heatmap for Missing Data
+    st.subheader("Heatmap of Missing Power Consumption Dates (MU)")
+    if not missing_heatmap_data_pivot.empty:
+        fig1, ax1 = plt.subplots(figsize=(10, 6))
+        sns.heatmap(missing_heatmap_data_pivot, cmap='YlGnBu', annot=True, fmt=".2f", ax=ax1)
+        ax1.set_title("Missing Power Consumption Heatmap (MU)")
+        st.pyplot(fig1)
     else:
-        st.warning("Please upload an Excel file to proceed with forecasting.")
+        st.warning("No missing data available to generate heatmap.")
 
-# Load data (moved inside the show function for Streamlit context)
-def load_data(file_path):
-    """
-    Loads data from an Excel file.
+    # Anomaly Detection
+    st.subheader(" Power Consumption with Anomaly Detection to check the fit-in of missing datas")
+    fig2, ax2 = plt.subplots(figsize=(12, 5))
+    if filled_data is not None:
+        ax2.plot(filled_data['DATE'], filled_data['Power_Consumption(MU)'],
+                 label='Power Consumption', color='blue', linewidth=1.5)
 
-    Args:
-        file_path (str): Path to the Excel file.
+        if not anomalies.empty:
+            ax2.scatter(anomalies['DATE'], anomalies['Power_Consumption(MU)'],
+                        color='red', label='Anomaly', s=60, marker='o')
 
-    Returns:
-        pd.DataFrame: The loaded data.
-    """
-    df = pd.read_excel(file_path)
-    df['DATE'] = pd.to_datetime(df['DATE'])
-    return df
+        ax2.set_xlabel('Date')
+        ax2.set_ylabel("Power Consumption (MU)")
+        ax2.legend()
+        ax2.grid(True)
+        st.pyplot(fig2)
 
 
-# General forecasting function for any model
-def forecast_model(df, model_name='ANN'):
-    """
-    Forecasts power consumption using the specified model.
-
-    Args:
-        df (pd.DataFrame): Input data.
-        model_name (str): Name of the model ('ANN', 'RF', 'SVM').
-
-    Returns:
-        tuple: (forecast_df, mse, r2, mae, predicted_df)
-            forecast_df (pd.DataFrame): DataFrame with forecasted values.
-            mse (float): Mean Squared Error.
-            r2 (float): R-squared.
-            mae (float): Mean Absolute Error.
-            predicted_df (pd.DataFrame): DataFrame with predictions vs actuals.
-    """
-    df['Year'] = df['DATE'].dt.year
-    df['DayOfYear'] = df['DATE'].dt.dayofyear
-
-    X = df[['Year', 'DayOfYear']].values
-    y = df['Power_Consumption(MU)'].values.reshape(-1, 1)
-
-    x_scaler = MinMaxScaler()
-    y_scaler = MinMaxScaler()
-
-    X_scaled = x_scaler.fit_transform(X)
-    y_scaled = y_scaler.fit_transform(y)
-
-    X_train, X_test, y_train, y_test = train_test_split(X_scaled, y_scaled, test_size=0.2, random_state=42)
-
-    if model_name == 'ANN':
-        model = MLPRegressor(hidden_layer_sizes=(100, 50), max_iter=1000, random_state=42)
-    elif model_name == 'RF':
-        model = RandomForestRegressor(n_estimators=100, random_state=42)
-    elif model_name == 'SVM':
-        model = SVR(C=100, gamma=0.1, epsilon=0.1)
-    else:
-        raise ValueError("Invalid model name")
-
-    model.fit(X_train, y_train.ravel())
-
-    y_pred_scaled = model.predict(X_test)
-    y_pred = y_scaler.inverse_transform(y_pred_scaled.reshape(-1, 1))
-    y_test_inv = y_scaler.inverse_transform(y_test)
-
-    mse = mean_squared_error(y_test_inv, y_pred)
-    r2 = r2_score(y_test_inv, y_pred)
-    mae = mean_absolute_error(y_test_inv, y_pred)
-
-    last_date = df['DATE'].max()
-    future_dates = [last_date + timedelta(days=i) for i in range(1, 5 * 365 + 1)]
-    future_df = pd.DataFrame({
-        'Date': future_dates,
-        'Year': [d.year for d in future_dates],
-        'DayOfYear': [d.timetuple().tm_yday for d in future_dates]
-    })
-
-    future_scaled = x_scaler.transform(future_df[['Year', 'DayOfYear']].values)
-    future_predictions_scaled = model.predict(future_scaled)
-    future_predictions = y_scaler.inverse_transform(future_predictions_scaled.reshape(-1, 1))
-
-    forecast_df = pd.DataFrame({
-        'Date': future_dates,
-        'Power_Consumption(MU)': future_predictions.flatten(),
-        'Model': model_name
-    })
-
-    predicted_df = pd.DataFrame({
-        'Date': pd.to_datetime(dict(
-            year=(X_test[:, 0] * (x_scaler.data_max_[0] - x_scaler.data_min_[0]) + x_scaler.data_min_[0]).astype(int),
-            month=1, day=1)) +
-                pd.to_timedelta(((X_test[:, 1] * (x_scaler.data_max_[1] - x_scaler.data_min_[1]) + x_scaler.data_min_[
-                    1]) - 1).astype(int), unit='D'),
-        'Actual': y_test_inv.flatten(),
-        'Predicted': y_pred.flatten(),
-        'Model': model_name
-    })
-    return forecast_df, mse, r2, mae, predicted_df
-
+        # Display Data and Download
+        st.subheader("📁 View Predicted Power Consumption Data")
+        st.dataframe(filled_data.head(10))
+        st.download_button(
+            label="Download Predicted Data",
+            data=filled_data.to_csv(index=False),
+            file_name="Predicted_Power_Consumption.csv",
+            mime="text/csv"
+        )
+    else:  # Ensure it's aligned correctly
+        st.info("Please upload an Excel file to start the analysis.")
 if __name__ == '__main__':
     show()
