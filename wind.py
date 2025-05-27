@@ -49,12 +49,12 @@ def show():
                     st.dataframe(future_data[['DATE', 'Total Energy (kWh/day)']].head())
 
                     # Visualization
-                    st.subheader("Wind Energy Prediction Plot:")
+                    st.subheader("Wind Speed Prediction Plot:")
                     fig, ax = plt.subplots(figsize=(10, 6))
                     ax.plot(future_data['DATE'], future_data['Total Energy (kWh/day)'], label="Total Energy Harnessed")
                     ax.set_xlabel("Date")
-                    ax.set_ylabel("Total Energy (kWh/day)")
-                    ax.set_title("Predicted Wind Energy (2025–2030)")
+                    ax.set_ylabel("Total Wind Speed (kWh/day)")
+                    ax.set_title("Predicted Wind Speed for the year (2025–2030) for Chennai,TamilNadu")
                     ax.legend()
                     st.pyplot(fig)
                 else:
