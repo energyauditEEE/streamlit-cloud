@@ -125,13 +125,14 @@ def show():
         anomalies = detect_anomalies(filled_data.copy())
 
         # Heatmap
-        st.subheader("Heatmap of Predicted/Actual Power Consumption")
-        if not heatmap_data_pivot.empty:
-            fig1, ax1 = plt.subplots(figsize=(10, 6))
-            sns.heatmap(heatmap_data_pivot, cmap='YlGnBu', annot=False, fmt=".2f", ax=ax1)
-            st.pyplot(fig1)
-        else:
-            st.warning("No data available to generate heatmap.")
+    st.subheader("Heatmap of Missing Power Consumption Dates")
+    if not missing_heatmap_data_pivot.empty:
+        fig1, ax1 = plt.subplots(figsize=(10, 6))
+        sns.heatmap(missing_heatmap_data_pivot, cmap='YlGnBu', annot=True, fmt=".2f", ax=ax1)
+        ax1.set_title("Missing Power Consumption Heatmap (MU)")
+        st.pyplot(fig1)
+    else:
+        st.warning("No missing data available to generate heatmap.")
 
         # Anomaly Detection
         st.subheader("Time Series of Power Consumption with Anomaly Detection")
