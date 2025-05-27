@@ -75,7 +75,7 @@ def detect_anomalies(data):
     anomalies = data[data['anomaly'] == -1]
     return anomalies
 
-def show():
+
 # Streamlit App
 st.title("Power Consumption Analysis with Anomaly Detection & Missing Data Heatmap")
 
@@ -129,5 +129,5 @@ if data is not None:
         )
     else:  # Ensure it's aligned correctly
         st.info("Please upload an Excel file to start the analysis.")
-if __name__=__main__:
-main()
+if __name__ == '__main__':
+    show()
