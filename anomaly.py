@@ -145,5 +145,5 @@ def show():
     else:
         st.info("Please upload an Excel file to start the power consumption analysis.")
 
-# IMPORTANT: There is NO if __name__ == "__main__": block here.
-# This file is designed to be imported as a module, not run directly.
+if __name__ == "__main__"
+main()
