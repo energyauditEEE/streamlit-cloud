@@ -117,21 +117,6 @@ if data is not None:
         ax2.grid(True)
         st.pyplot(fig2)
 
-        # Anomaly Detection
-        st.subheader("Time Series of Power Consumption with Anomaly Detection")
-        fig2, ax2 = plt.subplots(figsize=(12, 5))
-        ax2.plot(filled_data['DATE'], filled_data['Power_Consumption(MU)'],
-                 label='Power Consumption', color='blue', linewidth=1.5)
-
-        if not anomalies.empty:
-            ax2.scatter(anomalies['DATE'], anomalies['Power_Consumption(MU)'],
-                        color='red', label='Anomaly', s=60, marker='o')
-
-        ax2.set_xlabel('Date')
-        ax2.set_ylabel('Power Consumption (MU)')  # Fixed misplaced double quote
-        ax2.legend()
-        ax2.grid(True)
-        st.pyplot(fig2)
 
         # Display Data and Download
         st.subheader("📁 View Predicted Power Consumption Data")
