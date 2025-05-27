@@ -165,5 +165,5 @@ def show():
     else:
         st.info("Please upload an Excel file to start the analysis.")
 
-if _name_ == "main":
+if __name__ == "__main__":
     show()
