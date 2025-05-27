@@ -121,5 +121,5 @@ else:
     st.warning("Please upload an Excel file to proceed with forecasting.")
 
 # Ensure Home Page Loads Properly
-if __name__ == '__main__':
+if __name__ == "__main__":
     show()
