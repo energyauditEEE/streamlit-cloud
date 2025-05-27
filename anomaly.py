@@ -5,69 +5,45 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn.ensemble import RandomForestRegressor, IsolationForest
 
+
 @st.cache_data
 def load_data(uploaded_file):
     """Loads and preprocesses the data."""
     if uploaded_file is not None:
-        try:
-            data = pd.read_excel(uploaded_file)
-            if 'DATE' in data.columns:
-                data['DATE'] = pd.to_datetime(data['DATE'])
-            else:
-                st.error("Error: 'DATE' column not found in the uploaded file.")
-                return None
-            required_columns = [
-                'Temperature (F)', 'Dew Point (F)', 'Max Wind Speed (mps)',
-                'Avg Wind Speed (mps)', 'Atm Pressure (hPa)', 'Humidity(g/m^3)',
-                'Power_Consumption(MU)'
-            ]
-            if not all(col in data.columns for col in required_columns[:-1]):
-                missing_cols = [col for col in required_columns[:-1] if col not in data.columns]
-                st.error(f"Error: Missing required columns: {', '.join(missing_cols)} in the uploaded file.")
-                return None
-            data = data.dropna(subset=required_columns[:-1])
-            return data
-        except Exception as e:
-            st.error(f"An error occurred while loading the data: {e}")
-            return None
+        data = pd.read_excel(uploaded_file)
+        data['DATE'] = pd.to_datetime(data['DATE'])
+        data = data.dropna(subset=[
+            'Temperature (F)', 'Dew Point (F)', 'Max Wind Speed (mps)',
+            'Avg Wind Speed (mps)', 'Atm Pressure (hPa)', 'Humidity(g/m^3)'
+        ])
+        return data
     return None
+
 
 @st.cache_data
 def predict_missing_power(data):
     """Predicts missing power consumption values."""
     if data is None:
-        return pd.DataFrame()  # Return empty DataFrame if no data
+        return pd.DataFrame()
 
-    if 'Power_Consumption(MU)' not in data.columns:
-        st.error("Error: 'Power_Consumption(MU)' column not found for prediction.")
-        return data
-
+    data['was_missing'] = data['Power_Consumption(MU)'].isna()  # Track originally missing values
     known_data = data[data['Power_Consumption(MU)'].notna()]
     missing_data = data[data['Power_Consumption(MU)'].isna()]
     features = ['Temperature (F)', 'Dew Point (F)', 'Max Wind Speed (mps)',
                 'Avg Wind Speed (mps)', 'Atm Pressure (hPa)', 'Humidity(g/m^3)']
 
-    # Check if all features are present in the data
-    if not all(feature in known_data.columns for feature in features):
-        missing_features = [f for f in features if f not in known_data.columns]
-        st.error(f"Error: Missing features for prediction: {', '.join(missing_features)}")
-        return data
-
     X_known = known_data[features]
     y_known = known_data['Power_Consumption(MU)']
     X_missing = missing_data[features]
 
-    if not X_missing.empty and not X_known.empty:
+    if not X_missing.empty:
         model = RandomForestRegressor(n_estimators=200, random_state=42)
         model.fit(X_known, y_known)
         missing_data['Power_Consumption(MU)'] = model.predict(X_missing)
-    elif X_missing.empty:
-        st.info("No missing power consumption values to predict.")
-    elif X_known.empty:
-        st.warning("Not enough data with known power consumption to train the prediction model.")
 
-    filled_data = pd.concat([known_data, missing_data]).sort_values(by='DATE') if 'DATE' in data.columns else pd.concat([known_data, missing_data])
+    filled_data = pd.concat([known_data, missing_data]).sort_values(by='DATE')
     return filled_data
+
 
 @st.cache_data
 def prepare_heatmap_missing_data(data):
@@ -153,5 +129,5 @@ if data is not None:
         )
     else:  # Ensure it's aligned correctly
         st.info("Please upload an Excel file to start the analysis.")
-if __name__ == "main":
-    show()
+if __name__=__main__:
+main()
