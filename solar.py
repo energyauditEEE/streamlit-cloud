@@ -95,20 +95,20 @@ def show():
 
                         # Calculate Solar Energy Output
                         future_data['solar energy (kWh/day)'] = (
-                            future_data['solar  energy'] * panel_efficiency * total_area / 1000 # Convert Watt-hours to kWh
+                            future_data['solar irradiance'] * panel_efficiency * total_area / 1000 # Convert Watt-hours to kWh
                         )
 
                         # Display Predictions
-                        st.write("Predicted Solar  energy (kWh/day) for 2025–2030:")
-                        st.dataframe(future_data[['date', ' energy (kWh/day)']].head()) # Display first few rows
+                        st.write("Predicted Solar Energy (kWh/day) for 2025–2030:")
+                        st.dataframe(future_data[['date', 'solar energy (kWh/day)']].head()) # Display first few rows
 
                         # Visualization
-                        st.write("Solar  energy Prediction Plot:")
+                        st.write("Solar Energy Prediction Plot:")
                         fig, ax = plt.subplots(figsize=(10, 6))
                         ax.plot(future_data['date'], future_data['solar energy (kWh/day)'], label="Predicted Energy")
                         ax.set_xlabel("Date")
-                        ax.set_ylabel("Solar  energy (kWh/day)")
-                        ax.set_title("Predicted Solar energy for the year (2025–2030) for TamilNadu")
+                        ax.set_ylabel("Solar Energy (kWh/day)")
+                        ax.set_title("Predicted Solar Energy (2025–2030)")
                         ax.legend()
                         st.pyplot(fig)
                     else:
